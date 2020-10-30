@@ -11,7 +11,7 @@ class HolidayRepository{
         $regionCode ? $apiUrl .= "&region=$regionCode" : '';
         return Http::get($apiUrl)->json();
     }
-    public function saveHolidaysToDb(string $year,string $countryCode,?string $region = null){
+    public function saveHolidaysToDb(string $year,string $countryCode,$data,?string $region = null){
 
     }
     public function checkIfHolidaysInDb(string $year,string $countryCode,?string $region = null){
