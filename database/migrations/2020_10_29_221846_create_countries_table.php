@@ -15,12 +15,12 @@ class CreateCountriesTable extends Migration
     {
         Schema::create('countries', function (Blueprint $table) {
             $table->id();
-            $table->string('countryCode');
-            $table->string('regions');
-            $table->string('holidayTypes');
-            $table->string('fullName');
-            $table->string('fromDate');
-            $table->string('toDate');
+            $table->string('countryCode',100);
+            $table->text('regions');
+            $table->text('holidayTypes');
+            $table->text('fullName');
+            $table->text('fromDate');
+            $table->text('toDate');
             $table->timestamps();
         });
     }
