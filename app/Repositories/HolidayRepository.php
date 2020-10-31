@@ -20,10 +20,15 @@ class HolidayRepository{
         $region ? $holidayData->region = $region : null;
         $holidayData->save();
     }
-    public function checkIfHolidaysInDb(string $year,string $countryCode,?string $region = null){
-        // should return holidays data id
-    }
-    public function getHolidaysFromDb($id){
-
+    public function getHolidaysFromDb(string $year,string $countryCode,?string $region = null){
+        $holidayDbData = Holiday::where([
+            ['year','=',$year],
+            ['countryCode','=',$countryCode],
+            ['region','=',$region],
+        ])->get();
+        if($holidayDbData->isEmpty()){
+            return false;
+        }
+        return $holidayDbData;
     }
 }
