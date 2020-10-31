@@ -23,8 +23,11 @@ class HolidaysController extends Controller
                 return (new ApiResponse)->success($holidaysInDb);
             }
             $holidaysFromApi = $this->holidayRepository->getYearHolidays($request->year,$request->countryCode,$request->region);
-            $this->holidayRepository->saveHolidaysToDb($request->year,$request->countryCode,$holidaysFromApi,$request->region);
-            return (new ApiResponse)->success($holidaysFromApi);
+            if(!isset($holidaysFromApi['error'])){
+                $this->holidayRepository->saveHolidaysToDb($request->year,$request->countryCode,$holidaysFromApi,$request->region);
+                return (new ApiResponse)->success($holidaysFromApi);
+            }
+            return (new ApiResponse)->exception('Invalid request parameters');
         } catch (Exception $exception) {
             return (new ApiResponse)->exception($exception->getMessage());
         }
