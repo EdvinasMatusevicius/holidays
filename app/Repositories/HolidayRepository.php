@@ -16,7 +16,7 @@ class HolidayRepository{
         $holidayData = new Holiday;
         $holidayData->year = $year;
         $holidayData->countryCode = $countryCode;
-        $holidayData->data = $data;
+        $holidayData->data = json_encode($data);
         $region ? $holidayData->region = $region : null;
         $holidayData->save();
     }
@@ -25,10 +25,10 @@ class HolidayRepository{
             ['year','=',$year],
             ['countryCode','=',$countryCode],
             ['region','=',$region],
-        ])->get();
+        ])->pluck('data');
         if($holidayDbData->isEmpty()){
             return false;
         }
-        return $holidayDbData;
+        return json_decode($holidayDbData[0]);
     }
 }
