@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Responses\ApiResponse;
 use App\Repositories\HolidayRepository;
 use Exception;
 use Illuminate\Http\Request;
@@ -17,16 +18,15 @@ class HolidaysController extends Controller
     }
     public function getCountryHolidays(Request $request){
         try {
-            $holidaysExistsInDb = $this->holidayRepository->checkIfHolidaysInDb($request->year,$request->countryCode,$request->region);
-            if($holidaysExistsInDb){
-                $holidaysFromDb = $this->getHolidaysFromDb($holidaysExistsInDb);
-                //api response
+            $holidaysInDb = $this->holidayRepository->getHolidaysFromDb($request->year,$request->countryCode,$request->region);
+            if($holidaysInDb){
+                return (new ApiResponse)->success($holidaysInDb);
             }
             $holidaysFromApi = $this->holidayRepository->getYearHolidays($request->year,$request->countryCode,$request->region);
             $this->holidayRepository->saveHolidaysToDb($request->year,$request->countryCode,$holidaysFromApi,$request->region);
-            //api response
+            return (new ApiResponse)->success($holidaysFromApi);
         } catch (Exception $exception) {
-            //api response
+            return (new ApiResponse)->exception($exception->getMessage());
         }
     }
 }
