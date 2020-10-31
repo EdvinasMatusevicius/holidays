@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/holidays/{countryCode}/{year}',[HolidaysController::class,'getCountryHolidays']);
+Route::get('/holidays/{countryCode}/{year}/{region?}',[HolidaysController::class,'getCountryHolidays']);
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
