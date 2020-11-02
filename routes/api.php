@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CountriesController;
 use App\Http\Controllers\HolidaysController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -17,6 +18,4 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/holidays/{countryCode}/{year}/{region?}',[HolidaysController::class,'getCountryHolidays']);
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
+Route::get('/countries',[CountriesController::class,'getAllCountries']);
