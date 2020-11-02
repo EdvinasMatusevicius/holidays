@@ -23,6 +23,6 @@ class HolidayRepository{
         if($holidayDbData->isEmpty()){
             return false;
         }
-        return json_decode($holidayDbData[0]);
+        return json_decode($holidayDbData[0],true);
     }
 }
