@@ -8,12 +8,15 @@ use Illuminate\Support\Facades\Http;
 
 class HolidayDataServices {
 
+    protected $holidayDatesArr = [];
+
     public function getYearHolidays(string $year,string $countryCode,?string $regionCode = null){
         $apiUrl = "https://kayaposoft.com/enrico/json/v2.0/?action=getHolidaysForYear&year=$year&country=$countryCode&holidayType=public_holiday";
         $regionCode ? $apiUrl .= "&region=$regionCode" : '';
         return Http::get($apiUrl)->json();
     }
     public function parseHolidayData(array $data,string $countryCode,?string $region = null){
+        $this->fillHolidaysDateArr($data);
         return [
             'holidays'=>$this->groupByMonth($data),
             'numberOfHolidays'=>array_reduce($data, [$this,"countPublicHolidays"], 0),
@@ -21,13 +24,7 @@ class HolidayDataServices {
         ];
         
     }
-    public function getCurrentDayStatus(string $countryCode,?string $region = null){
-        $date = date('d-m-Y');
-        $status = ['date'=>$date];
-        $this->isDayWorkDay($date,$countryCode,$region) ? $status['status']='workday' : 
-            ($this->isDayHoliday($date,$countryCode,$region) ? $status['status']='holiday' : $status['status']='freeday');
-        return $status;
-    }
+
     private function groupByMonth(array $data){
         $groupedHolidays = [];
         foreach ($data as $holiday) {
@@ -63,10 +60,17 @@ class HolidayDataServices {
         };
         return $maxInRow;
     }
+    public function getCurrentDayStatus(string $countryCode,?string $region = null){
+        $date = date('d-m-Y');
+        $status = ['date'=>$date];
+        $this->isDayWorkDay($date,$countryCode,$region) ? $status['status']='workday' : 
+            ($this->isDayHoliday($date,$countryCode,$region) ? $status['status']='holiday' : $status['status']='freeday');
+        return $status;
+    }
     private function inRowHolidaysAhead($carbonHolidayDate,$operator,$countryCode,$region){
         $holidaysInRow = 1;
         $yearEndDate = $carbonHolidayDate->copy()->endOfYear()->format('d-m-Y');
-        while($this->isDayHoliday($dayToCheck = $this->carbonDayHelper($carbonHolidayDate,'add',$holidaysInRow,true), $countryCode, $region)){
+        while($this->isDayHolidayNoApi($dayToCheck = $this->carbonDayHelper($carbonHolidayDate,'add',$holidaysInRow,true), $countryCode, $region)){//if want to use api change to isDayHoliday
             ++$holidaysInRow;
             if($dayToCheck === $yearEndDate){
                 break;
@@ -80,8 +84,8 @@ class HolidayDataServices {
         $yearEnd = $carbonHolidayDate->copy()->endOfYear()->format('d-m-Y');
         if($yearStart !== $carbonHolidayDate->copy()->format('d-m-Y')){
             $a=1;
-            while ($this->carbonDayHelper($carbonHolidayDate,'sub',$a,false)->isWeekend() ||
-                !$this->isDayWorkDay($this->carbonDayHelper($carbonHolidayDate,'sub',$a,true), $countryCode, $region)) {
+            while ($this->carbonDayHelper($carbonHolidayDate,'sub',$a,false)->isWeekend() || //asumes that all countrys have same weekends free
+                $this->isDayHolidayNoApi($this->carbonDayHelper($carbonHolidayDate,'sub',$a,true), $countryCode, $region)) {//if want to use api change to !$this->isDayWorkDay. -Api bottlenecks-
                     $dayToCheck = $this->carbonDayHelper($carbonHolidayDate,'sub',$a,true);
                 ++$a;
                 ++$freeDays;
@@ -96,7 +100,7 @@ class HolidayDataServices {
         if($yearEnd !== $carbonHolidayDate->copy()->format('d-m-Y')){
             $b=1;
             while ($this->carbonDayHelper($carbonHolidayDate,'add',$b,false)->isWeekend() ||
-                !$this->isDayWorkDay($this->carbonDayHelper($carbonHolidayDate,'add',$b,true), $countryCode, $region)) {
+                $this->isDayHolidayNoApi($this->carbonDayHelper($carbonHolidayDate,'add',$b,true), $countryCode, $region)) { //if want to use api change to !$this->isDayWorkDay 
                 $dayToCheck = $this->carbonDayHelper($carbonHolidayDate,'add',$b,true);
                 ++$b;
                 ++$freeDays;
@@ -118,6 +122,18 @@ class HolidayDataServices {
         }
         return $carbonDate;
     }
+    private function fillHolidaysDateArr($data){
+        foreach ($data as $holiday) {
+            $year = $holiday['date']['year'];
+            $month = $holiday['date']['month'];
+            $day = $holiday['date']['day'];
+            $holidayDate =  Carbon::parse("$day-$month-$year")->format('d-m-Y');
+            array_push($this->holidayDatesArr,$holidayDate);
+        }
+    }
+    private function isDayHolidayNoApi($date){
+        return in_array($date,$this->holidayDatesArr);
+    }
     private function isDayWorkDay($date,$countryCode,$region){
         $apiUrl = "https://kayaposoft.com/enrico/json/v2.0/?action=isWorkDay&date=$date&country=$countryCode";
         $region ? $apiUrl .= "&region=$region" : '';
@@ -126,6 +142,6 @@ class HolidayDataServices {
     private function isDayHoliday($date,$countryCode,$region){
         $apiUrl = "https://kayaposoft.com/enrico/json/v2.0?action=isPublicHoliday&date=$date&country=$countryCode";
         $region ? $apiUrl .= "&region=$region" : '';
-        return (Http::get($apiUrl)->json())['isPublicHoliday'];
+        return (Http::get($apiUrl)->json())['isPublicHoliday'];  
     }
 }
