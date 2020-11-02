@@ -7,6 +7,7 @@ use App\Models\Country;
 class CountriesRepository{
 
     public function getCountriesFromDb(){
-        return Country::all();;
+        $allCountries = Country::all();
+        return json_decode($allCountries);
     }
 }
