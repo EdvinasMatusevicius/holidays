@@ -80,7 +80,9 @@ class HolidayDataServices {
         $yearEnd = $carbonHolidayDate->copy()->endOfYear()->format('d-m-Y');
         if($yearStart !== $carbonHolidayDate->copy()->format('d-m-Y')){
             $a=1;
-            while (!$this->isDayWorkDay($dayToCheck = $this->carbonDayHelper($carbonHolidayDate,'sub',$a,true), $countryCode, $region)) {
+            while ($this->carbonDayHelper($carbonHolidayDate,'sub',$a,false)->isWeekend() ||
+                !$this->isDayWorkDay($this->carbonDayHelper($carbonHolidayDate,'sub',$a,true), $countryCode, $region)) {
+                    $dayToCheck = $this->carbonDayHelper($carbonHolidayDate,'sub',$a,true);
                 ++$a;
                 ++$freeDays;
                 if($yearStart === $dayToCheck){
@@ -93,7 +95,9 @@ class HolidayDataServices {
         }
         if($yearEnd !== $carbonHolidayDate->copy()->format('d-m-Y')){
             $b=1;
-            while (!$this->isDayWorkDay($dayToCheck = $this->carbonDayHelper($carbonHolidayDate,'add',$b,true), $countryCode, $region)) {
+            while ($this->carbonDayHelper($carbonHolidayDate,'add',$b,false)->isWeekend() ||
+                !$this->isDayWorkDay($this->carbonDayHelper($carbonHolidayDate,'add',$b,true), $countryCode, $region)) {
+                $dayToCheck = $this->carbonDayHelper($carbonHolidayDate,'add',$b,true);
                 ++$b;
                 ++$freeDays;
                 if($yearEnd === $dayToCheck){
