@@ -1,4 +1,4 @@
-# Product recommendation API
+# Holiday info api
 
 Api that returns list of holidays for selected country, region and year. Holidays are grouped by a month. List also includes number of holidays for that year, maximum amount of free days in a row and current day status. <br>
 
